@@ -1,7 +1,7 @@
 guy_img = love.graphics.newImage("assets/char.png")
 bullet_img = love.graphics.newImage("assets/bullet.png")
 gun_img = love.graphics.newImage("assets/gun.png")
-bg_img = love.graphics.newImage("assets/bg.jpg")
+bg_img = love.graphics.newImage("assets/bg.png")
 guy2_img = love.graphics.newImage("assets/char2.png")
 gun2_img = love.graphics.newImage("assets/gun2.png")
 music = love.audio.newSource("assets/song.mp3")
@@ -11,9 +11,11 @@ music:setLooping(true)
 bullets = {}
 move_x = 0
 move_y = 0
-guy = {}
+guy = {y_velocity = 0}
 guy.x = 382
-guy.y = 400
+guy.y = 525
+gravity = 400
+jump_height = -400
 
 function love.draw()
   love.graphics.draw(bg_img,0,0)
@@ -46,15 +48,11 @@ function love.update(dt)
   end
   local move_x = 0
   local move_y = 0
-  if (love.keyboard.isDown("w")) then
-    move_y = move_y - 100
-  end
+  --move left
   if (love.keyboard.isDown("a")) then
     move_x = move_x - 100
   end
-  if (love.keyboard.isDown("s")) then
-    move_y = move_y + 100
-  end
+  --move right
   if (love.keyboard.isDown("d")) then
     move_x = move_x + 100
   end
@@ -66,9 +64,31 @@ function love.update(dt)
         table.remove(bullets,i)
       end
   end
+  if guy.y_velocity ~= 0 then -- we're probably jumping
+        guy.y = guy.y + guy.y_velocity * dt -- dt means we wont move at
+        -- different speeds if the game lags
+        guy.y_velocity = guy.y_velocity + gravity * dt
+        if guy.y > 525 then -- we hit the ground again
+            guy.y_velocity = 0
+            guy.y = 525
+        end
+  end
+  if guy.x < 20 then
+	guy.x = 20
+  elseif guy.x > 780 then
+	guy.x = 780
+  end
 end
 
 mainshoot = false
+
+function love.keypressed(key)
+    if key == "w" or key == " " then
+        if guy.y_velocity == 0 then -- we're probably on the ground, let's jump
+            guy.y_velocity = jump_height
+        end
+    end
+end
 
 function love.mousepressed(x, y, button)
   if button == "l" then
